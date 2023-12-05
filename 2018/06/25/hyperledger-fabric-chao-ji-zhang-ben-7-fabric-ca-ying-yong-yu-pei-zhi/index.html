@@ -1,0 +1,1864 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="HyperLedger Fabric - 超级账本（7）Fabric CA 应用与配置, yayiyo">
+    <meta name="description" content="
+
+简介Fabric CA项目是超级账本Fabric内的MemberService组件, 对网络内各个实体的身份证书的管理, 主要实现:
+
+负责Fabric网络内所有实体(Identity)的身份管理, 包括身份的注册、注销等
+负责证书管理">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    
+
+    <title>HyperLedger Fabric - 超级账本（7）Fabric CA 应用与配置 | yayiyo</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="/css/my.css">
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<meta name="generator" content="Hexo 6.3.0">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="yayiyo" type="application/atom+xml">
+</head>
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">yayiyo</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言板</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>友情链接</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">yayiyo</div>
+        <div class="logo-desc">
+            
+            Never really desperate, only the lost of the soul.
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言板
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			友情链接
+		</a>
+          
+        </li>
+        
+        
+        <li><div class="divider"></div></li>
+        <li>
+            <a href="https://github.com/yayiyo" class="waves-effect waves-light" target="_blank">
+                <i class="fab fa-github-square fa-fw"></i>Fork Me
+            </a>
+        </li>
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+            <style>
+    .nav-transparent .github-corner {
+        display: none !important;
+    }
+
+    .github-corner {
+        position: absolute;
+        z-index: 10;
+        top: 0;
+        right: 0;
+        border: 0;
+        transform: scale(1.1);
+    }
+
+    .github-corner svg {
+        color: #0f9d58;
+        fill: #fff;
+        height: 64px;
+        width: 64px;
+    }
+
+    .github-corner:hover .octo-arm {
+        animation: a 0.56s ease-in-out;
+    }
+
+    .github-corner .octo-arm {
+        animation: none;
+    }
+
+    @keyframes a {
+        0%,
+        to {
+            transform: rotate(0);
+        }
+        20%,
+        60% {
+            transform: rotate(-25deg);
+        }
+        40%,
+        80% {
+            transform: rotate(10deg);
+        }
+    }
+</style>
+
+<a href="https://github.com/yayiyo" class="github-corner tooltipped hide-on-med-and-down" target="_blank"
+   data-tooltip="Fork Me" data-position="left" data-delay="50">
+    <svg viewBox="0 0 250 250" aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor" class="octo-body"></path>
+    </svg>
+</a>
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/21.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">HyperLedger Fabric - 超级账本（7）Fabric CA 应用与配置</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        padding: 35px 0 15px 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        padding-bottom: 30px;
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        width: 48px;
+        height: 48px;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        line-height: 48px;
+        font-size: 1.4rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Fabric-%E8%B6%85%E7%BA%A7%E8%B4%A6%E6%9C%AC/">
+                                <span class="chip bg-color">Fabric 超级账本</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-category">
+                                学习笔记
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2018-06-25
+                </div>
+                
+
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-check fa-fw"></i>更新日期:&nbsp;&nbsp;
+                    2023-12-05
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    3.3k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    13 分
+                </div>
+                
+
+                
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+        <!-- 代码块折行 -->
+        <style type="text/css">
+            code[class*="language-"], pre[class*="language-"] { white-space: pre-wrap !important; }
+        </style>
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <span id="more"></span>
+
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Fabric CA项目是超级账本Fabric内的MemberService组件, 对网络内各个实体的身份证书的管理, 主要实现:</p>
+<ul>
+<li>负责Fabric网络内所有实体(Identity)的身份管理, 包括身份的注册、注销等</li>
+<li>负责证书管理, 包括ECerts(身份证书)、TCerts(交易证书)等的发放和注销</li>
+<li>服务端支持基于客户端命令行的RESTful API的交互方式</li>
+</ul>
+<p>Fabric CA采用Go语言进行编写</p>
+<h2 id="基本组件"><a href="#基本组件" class="headerlink" title="基本组件"></a>基本组件</h2><p>Fabric CA采用了典型的C/S架构， 目前包含两个基本组件， 分别实现服务端功能和客户端功能</p>
+<ul>
+<li>服务端: fabric-ca-server实现核心的PKI(Public Key Infrastructure: 公钥基础设施)服务功能， 支持多种数据库后台(包括SQlite3、MySQL、PostgreSQL等), 并支持集成LDAP用为用户注册管理功能</li>
+<li>客户端: fabric-ca-client封装了服务端的RESTful API, 提供访问服务端的命令, 供用户与服务端进行交互</li>
+</ul>
+<h2 id="安装服务端与客户端"><a href="#安装服务端与客户端" class="headerlink" title="安装服务端与客户端"></a>安装服务端与客户端</h2><p>安装Go1.9+</p>
+<p>设置GOPATH环境变量</p>
+<h3 id="安装libtool-与-libltdl-dev-依赖包"><a href="#安装libtool-与-libltdl-dev-依赖包" class="headerlink" title="安装libtool 与 libltdl-dev 依赖包"></a>安装libtool 与 libltdl-dev 依赖包</h3><pre class="language-bash" data-language="bash"><code class="language-bash">$ <span class="token function">sudo</span> <span class="token function">apt</span> update
+$ <span class="token function">sudo</span> <span class="token function">apt</span> <span class="token function">install</span> libtool libltdl-dev</code></pre>
+
+<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><p>安装服务端与客户端二进制命令到$GOPATH/bin目录下</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ go get -u github.com/hyperledger/fabric-ca/cmd/<span class="token punctuation">..</span>.</code></pre>
+
+<p>切换至源码目录下：</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ <span class="token builtin class-name">cd</span> <span class="token variable">$GOPATH</span>/src/github.com/hyperledger/fabric-ca/</code></pre>
+
+<p>使用make命令编译：</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ <span class="token function">make</span> fabric-ca-server
+$ <span class="token function">make</span> fabric-ca-client</code></pre>
+
+<p>生成 <code>bin</code> 目录, 目录中包含 <code>fabric-ca-client</code> 与 <code>fabric-ca-server</code> 两个可执行文件</p>
+<p>设置环境变量</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ <span class="token builtin class-name">export</span> <span class="token assign-left variable"><span class="token environment constant">PATH</span></span><span class="token operator">=</span><span class="token variable">$GOPATH</span>/src/github.com/hyperledger/fabric-ca/bin:<span class="token environment constant">$PATH</span></code></pre>
+
+<h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><p>返回至用户目录</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ <span class="token builtin class-name">cd</span> ~
+$ <span class="token function">mkdir</span> fabric-ca
+$ <span class="token builtin class-name">cd</span> fabric-ca</code></pre>
+
+<p>fabric-ca启动:</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token number">1</span>. 使用init进行初始化
+<span class="token number">2</span>. 使用start启动</code></pre>
+
+<p>初始化</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ fabric-ca-server init -b admin:pass</code></pre>
+
+<p>生成配置文件到至当前目录</p>
+<ul>
+<li>fabric-ca-server-config.yaml: 默认配置文件</li>
+<li>ca-cert.pem: PEM格式的CA证书文件, 自签名</li>
+<li>fabric-ca-server.db: 存放数据的sqlite数据库</li>
+<li>msp/keystore/: 路径下存放个人身份的私钥文件(_sk文件), 对应签名证书</li>
+</ul>
+<h3 id="快速启动"><a href="#快速启动" class="headerlink" title="快速启动"></a>快速启动</h3><p>快速启动并初始化一个fabric-ca-server服务</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ fabric-ca-server start -b admin:pass</code></pre>
+
+<p>-b: 提供注册用户的名称与密码, 如果没有使用LDAP, 这个选项为必需. 默认的配置文件的名称为fabric-ca-server-config.yaml</p>
+<blockquote>
+<p>如果之前没有执行初始化命令, 则启动过程中会自动先进行初始化操作. 即从主配置目录搜索相关证书和配置文件, 如果不存在则会自动生成</p>
+</blockquote>
+<h3 id="RESTful-API"><a href="#RESTful-API" class="headerlink" title="RESTful API"></a>RESTful API</h3><p>在打开的新终端中输入以下命令获取指定CA服务的基本信息.</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ <span class="token function">curl</span> -X POST -d <span class="token string">'{"caname":"test_ca"}'</span> http://localhost:7054/api/v1/cainfo</code></pre>
+
+<blockquote>
+<p>如要获取默认CA服务的基本信息, 可以不带任何参数, 如:</p>
+<pre class="language-none"><code class="language-none">$ curl -X POST http://localhost:7054/api/v1/cainfo</code></pre>
+</blockquote>
+<h2 id="服务端命令剖析"><a href="#服务端命令剖析" class="headerlink" title="服务端命令剖析"></a>服务端命令剖析</h2><p>fabric-ca-server命令主要负责启动一个CA服务, 包括init和start两个子命令</p>
+<h3 id="服务端配置文件解析"><a href="#服务端配置文件解析" class="headerlink" title="服务端配置文件解析"></a>服务端配置文件解析</h3><p>fabric-ca-server-config.yaml配置文件包括通用配置, TLS配置, CA配置, 注册管理配置, 数据库配置, LDAP配置, 组织结构配置, 签名, 证书申请等几部分</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">version: <span class="token number">1.1</span>.1-snapshot-e656889
+port: <span class="token number">7054</span>              <span class="token comment"># 指定服务的监听端口</span>
+debug: <span class="token boolean">false</span>            <span class="token comment"># 是否启用DEBUG模式, 输出更多的调试信息上</span>
+crlsizelimit: <span class="token number">512000</span>
+
+<span class="token comment"># 是否在服务端启用TLS,如果启用TLS后进行身份验证的证书和签名的私钥</span>
+tls:    
+  enabled: <span class="token boolean">false</span>        <span class="token comment"># 是否启用TLS, 默认不启用</span>
+  certfile:         <span class="token comment"># TLS证书文件</span>
+  keyfile:          <span class="token comment"># TLS密钥文件</span>
+  clientauth:   <span class="token comment"># 客户端验证配置</span>
+    type: noclientcert      <span class="token comment"># 默认不进行身份验证</span>
+    certfiles:      <span class="token comment"># 进行客户端身份验证时, 信任的证书文件列表</span>
+
+<span class="token comment"># 包括实例的名称、签名私钥文件、身份验证证书和证书链文件乖；这些私钥和证书文件会用来作为生成ECert、TCert的根证书</span>
+ca:     
+  name:         <span class="token comment"># CA服务名称. 可以支持多个服务</span>
+  keyfile:      <span class="token comment"># 密钥文件(默认: ca-key.pem)</span>
+  certfile:     <span class="token comment"># 证书文件(默认: ca-cert.pem)</span>
+  chainfile:    <span class="token comment"># 证书链文件(默认: chain-cert.pem)</span>
+
+crl:
+  expiry: 24h
+
+<span class="token comment"># 当fabric-ca-server自身提供用户的注册管理时使用, 此情况下需要禁用LDAP功能, 否则fabric-ca-server将会把注册管理数据转发到LDAP进行查询</span>
+registry:
+  <span class="token comment"># 允许同一个用户名和密码进行enrollment的最大次数, -1为无限制, 0为不支持登记</span>
+  maxenrollments: -1        
+  identities:   <span class="token comment"># 注册的实体信息, 可以进行enroll. 只有当LDAP未启用时起作用</span>
+     - name: admin
+       pass: adminpw
+       type: client
+       affiliation: <span class="token string">""</span>
+       attrs:
+          hf.Registrar.Roles: <span class="token string">"peer,orderer,client,user"</span>
+          hf.Registrar.DelegateRoles: <span class="token string">"peer,orderer,client,user"</span>
+          hf.Revoker: <span class="token boolean">true</span>
+          hf.IntermediateCA: <span class="token boolean">true</span>       <span class="token comment"># 该id是否是一个中间层的CA</span>
+          hf.GenCRL: <span class="token boolean">true</span>
+          hf.Registrar.Attributes: <span class="token string">"*"</span>
+          hf.AffiliationMgr: <span class="token boolean">true</span>
+
+<span class="token comment"># 数据库支持SQLite3、MySQL、Postgres. 默认为SQLite3类型的本地数据库. 如果要配置集群, 则需要选用MySQL或Postgres后端数据库, 并在前端部署负载均衡器(如Nginx或HAProxy)</span>
+db:
+  type: sqlite3
+  datasource: fabric-ca-server.db       <span class="token comment"># SQLite3文件路径</span>
+  tls:
+      enabled: <span class="token boolean">false</span>    <span class="token comment"># 是否启用TLS来连接到数据库</span>
+      certfiles:        <span class="token comment"># PEM格式的数据库服务器的TLS根证书, 可以指定多个, 用逗号隔开</span>
+      client:
+        certfile:       <span class="token comment"># PEM格式的客户端证书文件</span>
+        keyfile:        <span class="token comment"># PEM格式的客户端证书私钥文件</span>
+
+<span class="token comment"># 配置使用远端的LDAP来进行注册管理, 认证enrollment的用户和密码, 并获取用户属性信息. 此时, 服务端将按照指定的usrfilter从LDAP获取对应的用户, 利用其唯一识别名(distinguidhed name)和给定的密码进行验证. </span>
+<span class="token comment"># 当LDAP功能启用时, registry中的配置将被忽略</span>
+ldap:
+   enabled: <span class="token boolean">false</span>   <span class="token comment"># 是否启用LDAP, 默认不启用</span>
+   url: ldap://<span class="token operator">&lt;</span>adminDN<span class="token operator">&gt;</span>:<span class="token operator">&lt;</span>adminPassword<span class="token operator">&gt;</span>@<span class="token operator">&lt;</span>host<span class="token operator">&gt;</span>:<span class="token operator">&lt;</span>port<span class="token operator">&gt;</span>/<span class="token operator">&lt;</span>base<span class="token operator">&gt;</span>   <span class="token comment"># LDAP的服务地址</span>
+   tls:
+      certfiles:    <span class="token comment"># PEM格式的LDAP服务器的TLS根证书, 可以为多个, 用逗号隔开</span>
+      client:
+         certfile:  <span class="token comment"># PEM格式的客户端证书文件</span>
+         keyfile:   <span class="token comment"># PEM格式的客户端证书私钥文件</span>
+   attribute:    
+      names: <span class="token punctuation">[</span><span class="token string">'uid'</span>,<span class="token string">'member'</span><span class="token punctuation">]</span>     
+      converters:
+         - name:
+           value:      
+      maps:
+         groups:
+            - name:
+              value:
+
+<span class="token comment"># 组织结构配置</span>
+affiliations:
+   org1:
+      - department1
+      - department2
+   org2:
+      - department1
+
+<span class="token comment"># 签发证书相关的配置包括签名方法、证书超时时间等. fabric-ca-server可以作为用户证书的签发CA(默认情况下), 也可以作为根CA来进一步支持其它中间CA</span>
+signing:
+    default:    <span class="token comment"># 默认情况下,用于签署Ecert</span>
+      usage:    <span class="token comment"># 所签发证书的KeyUsage extension域</span>
+        - digital signature
+      expiry: 8760h
+    profiles:   <span class="token comment"># 不同的签发配置</span>
+      ca:   <span class="token comment"># 签署中间层CA证书时的配置模板</span>
+         usage:
+           - cert sign  <span class="token comment"># 所签发证书的KeyUsage extension域</span>
+           - crl sign
+         expiry: 43800h
+         caconstraint:
+           isca: <span class="token boolean">true</span>
+           maxpathlen: <span class="token number">0</span>    <span class="token comment"># 限制该中间层CA无法进一步签署中间层CA</span>
+      tls:
+         usage:
+            - signing
+            - key encipherment
+            - server auth
+            - client auth
+            - key agreement
+         expiry: 8760h
+
+<span class="token comment"># CA自身证书的申请请求配置. 当CA作为根证书服务时, 将基于请求生成一个自签名的证书; 当CA作为中间证书服务时, 将请求发送给上层的根证书进行签署</span>
+csr:
+   cn: fabric-ca-server     <span class="token comment"># 建议与服务器名一致</span>
+   names:
+      - C: US
+        ST: <span class="token string">"North Carolina"</span>
+        L:
+        O: Hyperledger
+        OU: Fabric
+   hosts:
+     - kevin-hf
+     - localhost
+   ca:      <span class="token comment"># 配置后会加入到证书的扩展字段</span>
+      expiry: 131400h       <span class="token comment"># 超时时间</span>
+      pathlength: <span class="token number">1</span>         <span class="token comment"># 允许产生的中间证书的深度</span>
+
+<span class="token comment"># 配置所选择的加密库</span>
+bccsp:
+    default: SW
+    sw:
+        hash: SHA2
+        security: <span class="token number">256</span>
+        filekeystore:
+            keystore: msp/keystore      <span class="token comment"># 存放密钥文件的路径</span>
+
+<span class="token comment"># 自动创建除了默认CA外的多个CA实例, 如ca1、ca2等</span>
+cacount:
+
+<span class="token comment"># 可以指定多个CA配置文件路径, 每个配置文件会启动一个CA服务,注意不同配置文件之间需要避免出现冲突(如服务端口、TLS证书等)</span>
+cafiles:
+
+
+<span class="token comment"># 当CA作为中间层CA服务时的相关配置. 包括父CA的地址和名称、登记信息、TLS配置等.</span>
+<span class="token comment"># 注意: 当intermediate.parentserver.url非空时, 意味着本CA是中间层CA服务,否则为根CA服务</span>
+intermediate:
+  parentserver:     <span class="token comment"># 父CA相关信息</span>
+    url:
+    caname:
+
+  enrollment:       <span class="token comment"># 在父CA侧的登记信息</span>
+    hosts:          <span class="token comment"># 证书主机名列表</span>
+    profile:        <span class="token comment"># 签发所用的profile</span>
+    label:          <span class="token comment"># HSM操作中的标签信息</span>
+
+  tls:      <span class="token comment"># TLS相关配置</span>
+    certfiles:      <span class="token comment"># 信任的根CA证书</span>
+    client:         <span class="token comment"># 客户端验证启用时的相关文件</span>
+      certfile:
+      keyfile:</code></pre>
+
+<h3 id="与服务器端进行交互"><a href="#与服务器端进行交互" class="headerlink" title="与服务器端进行交互"></a>与服务器端进行交互</h3><p>可以采用包括RESTful API在内的多种方式与Fabric-CA服务端进行交互. 其中最方便的方式是通过客户端工具 fabric-ca-client</p>
+<h4 id="登记用户"><a href="#登记用户" class="headerlink" title="登记用户"></a>登记用户</h4><p>注册管理员需要以管理员身份使用CA Client连接到CA Server，并生成相应的文件</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ <span class="token builtin class-name">export</span> <span class="token assign-left variable"><span class="token environment constant">PATH</span></span><span class="token operator">=</span><span class="token variable">$GOPATH</span>/src/github.com/hyperledger/fabric-ca/bin:<span class="token environment constant">$PATH</span>
+$ fabric-ca-client enroll -u http://admin:pass@localhost:7054</code></pre>
+
+<blockquote>
+<p>如果生成的配置文件不是在当前目录下, 则运行登记命令后可能会产生如下错误</p>
+<pre class="language-none"><code class="language-none">Error: Response from server: Error Code: 20 - Authorization failure
+解决方式: 返回至目录下重新启动服务
+$ cd ~
+$ fabric-ca-server start -b admin:pass</code></pre>
+</blockquote>
+<p>-u: 进行连接的fabric-ca-server服务地址, 默认为”<a target="_blank" rel="noopener" href="http://localhost:7054/">http://localhost:7054</a>”</p>
+<p>该命令访问本地Fabric CA服务, 采用默认的admin用户进行登记. 默认情况下会在用户目录下的.fabric-ca-clien子目录下创建默认的配置文件 <code>fabric-ca-clien-config.yaml</code> 和 <code>msp</code> 子目录(包括签发的证书文件)</p>
+<blockquote>
+<p>可以使用 <code>$ tree .fabric-ca-client/</code> 命令查看结构</p>
+</blockquote>
+<h4 id="注册用户"><a href="#注册用户" class="headerlink" title="注册用户"></a>注册用户</h4><p>登记后的用户身份可以采用如下命令来注册一个新的用户:</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ fabric-ca-client register --id.name kevin --id.type user --id.affiliation org1.department1 --id.attrs <span class="token string">'"hf.Registrar.Roles=peer,user"'</span> --id.attrs <span class="token string">'hf.Revoker=true'</span></code></pre>
+
+<p>执行后输出:</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token number">2018</span>/05/02 <span class="token number">14</span>:39:28 <span class="token punctuation">[</span>INFO<span class="token punctuation">]</span> Configuration <span class="token function">file</span> location: /home/kevin/.fabric-ca-client/fabric-ca-client-config.yaml
+Password: KDwrXkAFENWW</code></pre>
+
+<blockquote>
+<p><strong>命令执行成功后返回该新注册用户的密码</strong></p>
+<p><strong>如果想使用指定的密码, 在命令中添加选项 –id.secret password 即可</strong></p>
+</blockquote>
+<p>可以再次使用enroll命令，给kevin这个用户生成msp的私钥和证书</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ fabric-ca-client enroll -u http://kevin:KDwrXkAFENWW@localhost:7054 -M kevinca</code></pre>
+
+<blockquote>
+<p>-M: 指定生成证书存放目录MSP的路径, 默认为”msp”</p>
+<p>命令执行成功后会在 <code>.fabric-ca-client</code> 目录下生成指定的userca目录, 在此目录下生成msp的私钥和证书</p>
+<p>可使用tree使用查看</p>
+<pre class="language-none"><code class="language-none">$ tree .fabric-ca-client/</code></pre>
+
+<p>输出内容如下:</p>
+<pre class="language-none"><code class="language-none">.fabric-ca-client/
+├── fabric-ca-client-config.yaml
+├── kevinca
+│   ├── cacerts
+│   │   └── localhost-7054.pem
+│   ├── intermediatecerts
+│   │   └── localhost-7054.pem
+│   ├── keystore
+│   │   ├── 8c7e4d893af9b9a5907299097edd69c9adee743f4421f81a2d73ed55a874545e_sk
+│   │   └── ec63821399143fc422e01596eca622e8c658c0ded8e5c189804180256c40c19e_sk
+│   └── signcerts
+│       └── cert.pem
+├── msp
+    ├── cacerts
+    │   └── localhost-7054.pem
+    ├── intermediatecerts
+    │   └── localhost-7054.pem
+    ├── keystore
+    │   └── eaa009831dc406950766cc1df104f6fb3ed4b456faa5f476dc41db817a873d2a_sk
+    └── signcerts
+        └── cert.pem</code></pre>
+</blockquote>
+<h4 id="登记节点"><a href="#登记节点" class="headerlink" title="登记节点"></a>登记节点</h4><p>登记Peer或Orderer节点的操作与登记用户身份类似. 可以通过-M指定本地MSP的根路径来在其下存放证书文件</p>
+<h5 id="注册节点"><a href="#注册节点" class="headerlink" title="注册节点:"></a>注册节点:</h5><pre class="language-bash" data-language="bash"><code class="language-bash">$ fabric-ca-client register --id.name peer0 --id.type peer --id.affiliation org1.department1 --id.secret peer0pw</code></pre>
+
+<h5 id="登记节点-1"><a href="#登记节点-1" class="headerlink" title="登记节点"></a>登记节点</h5><pre class="language-bash" data-language="bash"><code class="language-bash">$ fabric-ca-client enroll -u http://peer0:peer0pw@localhost:7054 -M peer0</code></pre>
+
+<h2 id="客户端命令剖析"><a href="#客户端命令剖析" class="headerlink" title="客户端命令剖析"></a>客户端命令剖析</h2><p>fabric-ca-client命令可以与服务端进行交互, 包括五个子命令:</p>
+<ul>
+<li>enroll: 登录获取ECert</li>
+<li>getcacert: 获取CA服务的证书链</li>
+<li>reenroll: 再次登录</li>
+<li>register: 注册用户实体</li>
+<li>revoke: 吊销签发的实体证书</li>
+</ul>
+<p>这些命令都是通过服务端的RESTful接口来进行操作的</p>
+<h3 id="enroll命令"><a href="#enroll命令" class="headerlink" title="enroll命令"></a>enroll命令</h3><p>向服务端申请签发ECert证书并将文件保存至本地</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ fabric-ca-client enroll -u http://admin:pass@localhost:7054</code></pre>
+
+<h3 id="getcacert命令"><a href="#getcacert命令" class="headerlink" title="getcacert命令"></a>getcacert命令</h3><p>向服务端申请根证书信息并保存至本地主配置目录的msp/cacerts路径下</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ fabric-ca-client getcacert -u http://admin:pass@localhost:7054</code></pre>
+
+<p>证书命名格式为: 服务器主机名-CA实例名.pem</p>
+<h3 id="reenroll命令"><a href="#reenroll命令" class="headerlink" title="reenroll命令"></a>reenroll命令</h3><p>利用本地配置信息再次执行enroll过程, 生成新的签名证书材料</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ fabric-ca-client reenroll</code></pre>
+
+<h3 id="register命令"><a href="#register命令" class="headerlink" title="register命令"></a>register命令</h3><p>执行注册新用户实体的客户端必须已经通过登记认证, 并且拥有足够的权限(所注册用户的hf.Registrar.Roles和affiliation都不能超出调用者属性)来进行注册</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ fabric-ca-client register --id.name jack --id.type user --id.affiliation org1.department1 --id.attrs <span class="token string">'"hf.Registrar.Roles=peer,user"'</span> --id.attrs <span class="token string">'hf.Revoker=true'</span> --id.secret jackpw</code></pre>
+
+<h3 id="revoke命令"><a href="#revoke命令" class="headerlink" title="revoke命令"></a>revoke命令</h3><p>吊销指定的证书或指定实体相关的所有证书. 执行revoke命令的客户端身份必须拥有足够的权限(hf.Revoker为true, 并且被吊销者机构不能超出吊销者机构的范围)</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ fabric-ca-client revoke -e <span class="token string">"jack"</span> -r <span class="token string">"affiliationchange"</span></code></pre>
+
+<p>-e: 指定吊销用户</p>
+<p>-r: 指定吊销原因</p>
+<p>输出内容如下</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token number">2018</span>/05/02 <span class="token number">17</span>:55:44 <span class="token punctuation">[</span>INFO<span class="token punctuation">]</span> Configuration <span class="token function">file</span> location: .fabric-ca-client/fabric-ca-client-config.yaml
+<span class="token number">2018</span>/05/02 <span class="token number">17</span>:55:44 <span class="token punctuation">[</span>INFO<span class="token punctuation">]</span> Sucessfully revoked certificates: <span class="token punctuation">[</span><span class="token punctuation">]</span></code></pre>
+
+<h2 id="查看AKI和序列号"><a href="#查看AKI和序列号" class="headerlink" title="查看AKI和序列号"></a>查看AKI和序列号</h2><p>AKI: 公钥标识号, 代表了对该证书进行签发机构的身份</p>
+<p>查看根证书的AKI与序列号信息:</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">$ openssl x509 -in .fabric-ca-client/msp/signcerts/cert.pem -text -noout</code></pre>
+
+<p>输出内容如下:</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">Certificate:
+    Data:
+        Version: <span class="token number">3</span> <span class="token punctuation">(</span>0x2<span class="token punctuation">)</span>
+        Serial Number:  <span class="token comment"># 序列号</span>
+            <span class="token number">74</span>:48:88:33:70:1a:01:a0:ad:32:29:6e:c5:ab:5a:fa:3b:91:25:a4
+   <span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span>
+        X509v3 extensions:
+           <span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span>
+            X509v3 Authority Key Identifier:    <span class="token comment"># keyid后面的内容就是 AKI</span>
+                keyid:45:B1:50:B6:CD:8A:8D:C5:9B:9E:5F:75:15:47:D6:C0:AD:75:FE:71
+
+    <span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span></code></pre>
+
+<h3 id="单独获取AKI"><a href="#单独获取AKI" class="headerlink" title="单独获取AKI"></a>单独获取AKI</h3><pre class="language-bash" data-language="bash"><code class="language-bash">$ openssl x509 -in .fabric-ca-client/msp/signcerts/cert.pem -text -noout <span class="token operator">|</span> <span class="token function">awk</span> <span class="token string">'/keyid/ {gsub (/ *keyid:|:/,"",$1);print tolower($0)}'</span></code></pre>
+
+<p>输出内容如下:</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">45b150b6cd8a8dc59b9e5f751547d6c0ad75fe71</code></pre>
+
+<h3 id="单独获取序列号"><a href="#单独获取序列号" class="headerlink" title="单独获取序列号"></a>单独获取序列号</h3><pre class="language-bash" data-language="bash"><code class="language-bash">$ openssl x509 -in .fabric-ca-client/msp/signcerts/cert.pem -serial -noout <span class="token operator">|</span> <span class="token function">cut</span> -d <span class="token string">"="</span> -f <span class="token number">2</span></code></pre>
+
+<p>输出内容如下:</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash">74488833701A01A0AD32296EC5AB5AFA3B9125A4</code></pre>
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Jack Li</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://www.yayiyo.cn/2018/06/25/hyperledger-fabric-chao-ji-zhang-ben-7-fabric-ca-ying-yong-yu-pei-zhi/">https://www.yayiyo.cn/2018/06/25/hyperledger-fabric-chao-ji-zhang-ben-7-fabric-ca-ying-yong-yu-pei-zhi/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Jack Li</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Fabric-%E8%B6%85%E7%BA%A7%E8%B4%A6%E6%9C%AC/">
+                                    <span class="chip bg-color">Fabric 超级账本</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <style>
+    #reward {
+        margin: 40px 0;
+        text-align: center;
+    }
+
+    #reward .reward-link {
+        font-size: 1.4rem;
+        line-height: 38px;
+    }
+
+    #reward .btn-floating:hover {
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    #rewardModal {
+        width: 320px;
+        height: 350px;
+    }
+
+    #rewardModal .reward-title {
+        margin: 15px auto;
+        padding-bottom: 5px;
+    }
+
+    #rewardModal .modal-content {
+        padding: 10px;
+    }
+
+    #rewardModal .close {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        color: rgba(0, 0, 0, 0.5);
+        font-size: 1.3rem;
+        line-height: 20px;
+        cursor: pointer;
+    }
+
+    #rewardModal .close:hover {
+        color: #ef5350;
+        transform: scale(1.3);
+        -moz-transform:scale(1.3);
+        -webkit-transform:scale(1.3);
+        -o-transform:scale(1.3);
+    }
+
+    #rewardModal .reward-tabs {
+        margin: 0 auto;
+        width: 210px;
+    }
+
+    .reward-tabs .tabs {
+        height: 38px;
+        margin: 10px auto;
+        padding-left: 0;
+    }
+
+    .reward-content ul {
+        padding-left: 0 !important;
+    }
+
+    .reward-tabs .tabs .tab {
+        height: 38px;
+        line-height: 38px;
+    }
+
+    .reward-tabs .tab a {
+        color: #fff;
+        background-color: #ccc;
+    }
+
+    .reward-tabs .tab a:hover {
+        background-color: #ccc;
+        color: #fff;
+    }
+
+    .reward-tabs .wechat-tab .active {
+        color: #fff !important;
+        background-color: #22AB38 !important;
+    }
+
+    .reward-tabs .alipay-tab .active {
+        color: #fff !important;
+        background-color: #019FE8 !important;
+    }
+
+    .reward-tabs .reward-img {
+        width: 210px;
+        height: 210px;
+    }
+</style>
+
+<div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/medias/reward/wechat.jpg" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <style>
+    .waline-card {
+        margin: 1.5rem auto;
+    }
+    .waline-card .card-content {
+        padding: 20px 20px 5px 20px;
+    }
+
+    #waline p {
+        margin: 2px 2px 10px;
+        font-size: 1.05rem;
+        line-height: 1.78rem;
+    }
+    #waline blockquote p {
+        text-indent: 0.2rem;
+    }
+    #waline a {
+        padding: 0 2px;
+        color: #4cbf30;
+        font-weight: 500;
+        text-decoration: none;
+    }
+    #waline img {
+        max-width: 100%;
+        cursor: pointer;
+    }
+    #waline ol li {
+        list-style-type: decimal;
+    }
+    #waline ol,
+    ul {
+        display: block;
+        padding-left: 2em;
+        word-spacing: 0.05rem;
+    }
+    #waline ul li,
+    ol li {
+        display: list-item;
+        line-height: 1.8rem;
+        font-size: 1rem;
+    }
+    #waline ul li {
+        list-style-type: disc;
+    }
+    #waline ul ul li {
+        list-style-type: circle;
+    }
+    #waline table, th, td {
+        padding: 12px 13px;
+        border: 1px solid #dfe2e5;
+    }
+    #waline table, th, td {
+        border: 0;
+    }
+    table tr:nth-child(2n), thead {
+        background-color: #fafafa;
+    }
+    #waline table th {
+        background-color: #f2f2f2;
+        min-width: 80px;
+    }
+    #waline table td {
+        min-width: 80px;
+    }
+    #waline h1 {
+        font-size: 1.85rem;
+        font-weight: bold;
+        line-height: 2.2rem;
+    }
+    #waline h2 {
+        font-size: 1.65rem;
+        font-weight: bold;
+        line-height: 1.9rem;
+    }
+    #waline h3 {
+        font-size: 1.45rem;
+        font-weight: bold;
+        line-height: 1.7rem;
+    }
+    #waline h4 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+    #waline h5 {
+        font-size: 1.1rem;
+        font-weight: bold;
+        line-height: 1.4rem;
+    }
+    #waline h6 {
+        font-size: 1rem;
+        line-height: 1.3rem;
+    }
+    #waline p {
+        font-size: 1rem;
+        line-height: 1.5rem;
+    }
+    #waline hr {
+        margin: 12px 0;
+        border: 0;
+        border-top: 1px solid #ccc;
+    }
+    #waline blockquote {
+        margin: 15px 0;
+        border-left: 5px solid #42b983;
+        padding: 1rem 0.8rem 0.3rem 0.8rem;
+        color: #666;
+        background-color: rgba(66, 185, 131, .1);
+    }
+    #waline pre {
+        font-family: monospace, monospace;
+        padding: 1.2em;
+        margin: .5em 0;
+        background: #272822;
+        overflow: auto;
+        border-radius: 0.3em;
+        tab-size: 4;
+    }
+    #waline code {
+        font-family: monospace, monospace;
+        padding: 1px 3px;
+        font-size: 0.92rem;
+        color: #e96900;
+        background-color: #f8f8f8;
+        border-radius: 2px;
+    }
+    #waline pre code {
+        font-family: monospace, monospace;
+        padding: 0;
+        color: #e8eaf6;
+        background-color: #272822;
+    }
+    #waline pre[class*="language-"] {
+        padding: 1.2em;
+        margin: .5em 0;
+    }
+    #waline code[class*="language-"],
+    pre[class*="language-"] {
+        color: #e8eaf6;
+    }
+    #waline [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+        position: inherit;
+        margin-left: -1.3rem;
+        margin-right: 0.4rem;
+        margin-top: -1px;
+        vertical-align: middle;
+        left: unset;
+        visibility: visible;
+    }
+    #waline b,
+    strong {
+        font-weight: bold;
+    }
+    #waline dfn {
+        font-style: italic;
+    }
+    #waline small {
+        font-size: 85%;
+    }
+    #waline cite {
+        font-style: normal;
+    }
+    #waline mark {
+        background-color: #fcf8e3;
+        padding: .2em;
+    }
+    #waline table, th, td {
+        padding: 12px 13px;
+        border: 1px solid #dfe2e5;
+    }
+    table tr:nth-child(2n), thead {
+        background-color: #fafafa;
+    }
+    #waline table th {
+        background-color: #f2f2f2;
+        min-width: 80px;
+    }
+    #waline table td {
+        min-width: 80px;
+    }
+    #waline [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+        position: inherit;
+        margin-left: -1.3rem;
+        margin-right: 0.4rem;
+        margin-top: -1px;
+        vertical-align: middle;
+        left: unset;
+        visibility: visible;
+    }
+  </style>
+  
+  <div class="card waline-card" data-aos="fade-up">
+    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
+        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
+        <span>评论</span>
+    </div>
+    <div id="waline" class="card-content" style="display: grid">
+    </div>
+  </div>
+  
+
+  <!-- <script src="//cdn.jsdelivr.net/npm/@waline/client"></script> -->
+  <script src="/libs/waline/Waline.min.js"></script>
+  <script>
+    new Waline({
+        el: '#waline',
+        serverURL: 'https://comments.yayiyo.cn',
+        avatar: 'mm'    
+    });
+  </script> 
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2018/06/26/hyperledger-fabric-chao-ji-zhang-ben-8-node-ce-shi/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/2.jpg" class="responsive-img" alt="HyperLedger Fabric - 超级账本（8）Node测试">
+                        
+                        <span class="card-title">HyperLedger Fabric - 超级账本（8）Node测试</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2018-06-26
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-category">
+                                    学习笔记
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Fabric-%E8%B6%85%E7%BA%A7%E8%B4%A6%E6%9C%AC/">
+                        <span class="chip bg-color">Fabric 超级账本</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2018/06/25/hyperledger-fabric-chao-ji-zhang-ben-6-zhuan-huan-pei-zhi-tian-jia-zu-zhi-dao-channel/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/10.jpg" class="responsive-img" alt="HyperLedger Fabric - 超级账本（6）转换配置&amp;添加组织到channel">
+                        
+                        <span class="card-title">HyperLedger Fabric - 超级账本（6）转换配置&amp;添加组织到channel</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2018-06-25
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-category">
+                                    学习笔记
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Fabric-%E8%B6%85%E7%BA%A7%E8%B4%A6%E6%9C%AC/">
+                        <span class="chip bg-color">Fabric 超级账本</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: yayiyo<br />'
+            + '文章作者: Jack Li<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+        <link rel="stylesheet" href="/libs/aplayer/APlayer.min.css">
+<style>
+    .aplayer .aplayer-lrc p {
+        
+        display: none;
+        
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 16px !important;
+    }
+
+    .aplayer .aplayer-lrc p.aplayer-lrc-current {
+        
+        display: none;
+        
+        font-size: 15px;
+        color: #42b983;
+    }
+
+    
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body {
+        left: -66px !important;
+    }
+
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body:hover {
+        left: 0px !important;
+    }
+
+    
+</style>
+<div class="">
+    
+    <div class="row">
+        <meting-js class="col l8 offset-l2 m10 offset-m1 s12"
+                   server="netease"
+                   type="playlist"
+                   id="503838841"
+                   fixed='true'
+                   autoplay='false'
+                   theme='#42b983'
+                   loop='all'
+                   order='random'
+                   preload='auto'
+                   volume='0.7'
+                   list-folded='true'
+        >
+        </meting-js>
+    </div>
+</div>
+
+<script src="/libs/aplayer/APlayer.min.js"></script>
+<script src="/libs/aplayer/Meting.min.js"></script>
+
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2022-2023</span>
+            
+            <a href="/about" target="_blank">Jack Li</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">92.2k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/yayiyo" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:yayiyo@gmx.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=1053305048" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 1053305048" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+    
+
+     
+        <script src="https://ssl.captcha.qq.com/TCaptcha.js"></script>
+        <script src="/libs/others/TencentCaptcha.js"></script>
+        <button id="TencentCaptcha" data-appid="xxxxxxxxxx" data-cbfn="callback" type="button" hidden></button>
+    
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+</body>
+
+</html>
